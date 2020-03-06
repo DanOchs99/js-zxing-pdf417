@@ -36,7 +36,9 @@
                         source = new ZXing.BitmapLuminanceSource(canvas_context, image);
                         binarizer = new ZXing.Common.HybridBinarizer(source);
                         bitmap = new ZXing.BinaryBitmap(binarizer);
-                        $('.decodedText').text(JSON.stringify(ZXing.PDF417.PDF417Reader.decode(bitmap, null, false), null, 4));
+                        let zxingResult = ZXing.PDF417.PDF417Reader.decode(bitmap, null, false)
+                        console.log(zxingResult)
+                        $('.decodedText').text(JSON.stringify(zxingResult, null, 4));
                     } catch (err) {
                         $('.error').text(err);
                     }
