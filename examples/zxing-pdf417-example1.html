@@ -46,9 +46,9 @@
                     doScan($('img')[0]);
                 });
 
-                $('img').load(function() {
-                    doScan($('img')[0]);
-                });
+                //$('img').load(function() {
+                //    doScan($('img')[0]);
+                //});
 
                 $('#file').change(handleFiles);
             });
@@ -69,15 +69,19 @@
 </head>
 <body>
 <div>
+    <!--
     <form>
-        <input type="file" id="file" />
-        <button type="button">Decode</button>
-        <div class="error"></div>
+    -->
+        <input type='file' id='file' />
+        <button type='button'>Decode</button>
+        <div class='error'></div>
         <div>
-            <pre class="decodedText"></pre>
+            <pre class='decodedText'></pre>
         </div>
-        <img src="./reverse_side_sample.jpg"/>
+        <img src=''/>
+        <!--
     </form>
+    -->
 </div>
 </body>
 </html>
