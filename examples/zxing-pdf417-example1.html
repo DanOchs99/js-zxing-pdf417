@@ -36,9 +36,86 @@
                         source = new ZXing.BitmapLuminanceSource(canvas_context, image);
                         binarizer = new ZXing.Common.HybridBinarizer(source);
                         bitmap = new ZXing.BinaryBitmap(binarizer);
+
                         let zxingResult = ZXing.PDF417.PDF417Reader.decode(bitmap, null, false)
-                        console.log(zxingResult)
+
+                        let c = document.getElementById("myCanvas")
+                        c.width = bitmap.matrix.width
+                        c.height = bitmap.matrix.width
+                        let ctx = c.getContext("2d")
+
+                        console.log(bitmap)
+
+                        // initialize
+                        let imgData = ctx.createImageData(bitmap.matrix.width,bitmap.matrix.height)
+                        let i = 0
+                        let j = 0
+                        let k = 0
+                        let index = 0
+                        let endChunkSize = bitmap.matrix.width-((bitmap.matrix.rowSize-1)*32)
+                        // loop through the rows
+                        for (i = 0; i < bitmap.matrix.height; i++) {
+                            // if there is data this returns a BitArray, if no data on row returns null...
+                            bitmap_row = bitmap.getBlackRow(i)
+                            if (bitmap_row) {
+                                // there is data! let's process it...
+                                // first loop through the chunks of pixels
+                                for (j = 0; j < bitmap_row.bits.length; j++)
+                                {
+                                    if (j === bitmap_row.bits.length-1) {
+                                        chunkSize = endChunkSize
+                                    }
+                                    else {
+                                        chunkSize = 32
+                                    }
+                                    // loop through this chunk
+                                    for (k = 0; k < chunkSize; k++) {
+                                        if (((bitmap_row.bits[j] >> (k-1)) & 1) === 1) {
+                                            barcode_px = true
+                                        }
+                                        else {
+                                            barcode_px = false
+                                        }
+                                        imgData.data[index] = 255
+                                        imgData.data[index + 1] = (barcode_px) ? 0 : 255
+                                        imgData.data[index + 2] = (barcode_px) ? 0 : 255
+                                        imgData.data[index + 3] = 255
+                                        index += 4
+                                    }                            
+                                }
+                            }
+                            else {
+                                // advance the pixel index by one row
+                                index += bitmap.matrix.width * 4
+                            }
+                        }
+
+                        ctx.putImageData(imgData,0,0)
+
+                        // what did zxing find??
+                        if (zxingResult.length>0) {
+                            for (i=0; i<zxingResult.length; i++) {
+                                if (zxingResult[i].ResultPoints.length === 4 || zxingResult[i].ResultPoints.length === 8) {
+                                    ctx.moveTo(zxingResult[i].ResultPoints[0].x, zxingResult[i].ResultPoints[0].y)
+                                    ctx.lineTo(zxingResult[i].ResultPoints[1].x, zxingResult[i].ResultPoints[1].y)
+                                    ctx.lineTo(zxingResult[i].ResultPoints[3].x, zxingResult[i].ResultPoints[3].y)
+                                    ctx.lineTo(zxingResult[i].ResultPoints[2].x, zxingResult[i].ResultPoints[2].y)
+                                    ctx.lineTo(zxingResult[i].ResultPoints[0].x, zxingResult[i].ResultPoints[0].y)
+                                    ctx.stroke()
+                                }
+                                if (zxingResult[i].ResultPoints.length === 8) {
+                                    ctx.moveTo(zxingResult[i].ResultPoints[4].x, zxingResult[i].ResultPoints[4].y)
+                                    ctx.lineTo(zxingResult[i].ResultPoints[5].x, zxingResult[i].ResultPoints[5].y)
+                                    ctx.lineTo(zxingResult[i].ResultPoints[7].x, zxingResult[i].ResultPoints[7].y)
+                                    ctx.lineTo(zxingResult[i].ResultPoints[6].x, zxingResult[i].ResultPoints[6].y)
+                                    ctx.lineTo(zxingResult[i].ResultPoints[4].x, zxingResult[i].ResultPoints[4].y)
+                                    ctx.stroke()
+                                }
+                            }
+                        }
+                        
                         $('.decodedText').text(JSON.stringify(zxingResult, null, 4));
+
                     } catch (err) {
                         $('.error').text(err);
                     }
@@ -71,19 +148,19 @@
 </head>
 <body>
 <div>
-    <!--
     <form>
-    -->
-        <input type='file' id='file' />
-        <button type='button'>Decode</button>
-        <div class='error'></div>
+        <input type="file" id="file" />
+        <button type="button">Decode</button>
+        <div class="error"></div>
         <div>
-            <pre class='decodedText'></pre>
+            <pre class="decodedText"></pre>
         </div>
-        <img src=''/>
-        <!--
+        <div>
+        <img src=""/>
+        </div>
     </form>
-    -->
+    <canvas id="myCanvas" style="border:1px solid #000000;">
+    </canvas>
 </div>
 </body>
 </html>
